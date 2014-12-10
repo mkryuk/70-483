@@ -12,31 +12,29 @@ namespace _70_483
 
     class Program
     {
-        [ThreadStatic]
-        public static int _field;
-
-        public static ThreadLocal<int> _field2 = new ThreadLocal<int>(() => Thread.CurrentThread.ManagedThreadId);
-
         static void Main(string[] args)
-        {            
-            new Thread(() =>
+        {
+            Task<Int32[]> parent = Task.Run(() =>
             {
-                for (int i = 0; i < _field2.Value; i++)
-                {                    
-                    _field++;
-                    Console.WriteLine(Thread.CurrentThread.CurrentCulture.TextInfo.ToString() + _field);
-                    
-                }
-            }).Start();
+                var results = new Int32[3];
+                new Task(() => results[0] = 0,
+                    TaskCreationOptions.AttachedToParent).Start();
+                new Task(() => results[1] = 1,
+                    TaskCreationOptions.AttachedToParent).Start();
+                new Task(() => results[2] = 2,
+                    TaskCreationOptions.AttachedToParent).Start();
+                return results;
+            });
 
-            new Thread(() =>
-            {
-                for (int i = 0; i < _field2.Value; i++)
-                {
-                    _field++;
-                    Console.WriteLine("Thread 2: " + _field);
-                }
-            }).Start();
+            var finalTask = parent.ContinueWith(
+               parentTask =>
+               {
+                   foreach (int i in parentTask.Result)
+                       Console.WriteLine(i);
+               });
+
+
+            finalTask.Wait();
         }
     }
 }
