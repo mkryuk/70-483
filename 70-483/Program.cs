@@ -14,27 +14,14 @@ namespace _70_483
     {
         static void Main(string[] args)
         {
-            Task<Int32[]> parent = Task.Run(() =>
+            Parallel.For(0, 10, (i) => Thread.Sleep(1000));
+
+            var numbers = Enumerable.Range(0, 10);
+            Parallel.ForEach(numbers, i =>
             {
-                var result = new int[3];
-
-                TaskFactory tf = new TaskFactory(TaskCreationOptions.AttachedToParent,TaskContinuationOptions.ExecuteSynchronously);
-                tf.StartNew(() => result[0] = 0);
-                tf.StartNew(() => result[1] = 1);
-                tf.StartNew(() => result[2] = 2);
-
-                return result;
+                Console.WriteLine(i);
+                Thread.Sleep(1000);
             });
-
-            var finalTask = parent.ContinueWith(
-               parentTask =>
-               {
-                   foreach (int i in parentTask.Result)
-                       Console.WriteLine(i);
-               });
-
-
-            finalTask.Wait();
         }
     }
 }
