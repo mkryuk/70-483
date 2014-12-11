@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<persons>
+  <person id="1">
+    <name>Vasya</name>
+    <surname>Pupkin</surname>
+  </person>
+  <person id="2">
+    <name>Petya</name>
+    <surname>Vasechkin</surname>
+  </person>
+  <person id="3">
+    <name>Senya</name>
+    <surname>Ogloedov</surname>
+  </person>
+  <person id="4">
+    <name>Ivan</name>
+    <surname>Demidov</surname>
+  </person>
+  <person id="5">
+    <name>Kolya</name>
+    <surname>Nikolayev</surname>
+  </person>
+  <person id="6">
+    <name>John</name>
+    <surname>Dow</surname>
+  </person>
+  <person id="7">
+    <name>J</name>
+    <surname>K</surname>
+  </person>
+</persons>

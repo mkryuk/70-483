@@ -1,27 +1,53 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace _70_483
 {
 
     class Program
     {
+
         static void Main(string[] args)
         {
-            Parallel.For(0, 10, (i) => Thread.Sleep(1000));
+            BlockingCollection<string> collection = new BlockingCollection<string>();
 
-            var numbers = Enumerable.Range(0, 10);
-            Parallel.ForEach(numbers, i =>
+            Task.Run(() =>
             {
-                Console.WriteLine(i);
-                Thread.Sleep(1000);
+                while (true)
+                {
+                    Console.WriteLine("one: " + collection.Take());
+                }
             });
+
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    Console.WriteLine("two: " + collection.Take());
+                }
+            });
+
+            Task write = Task.Run(() =>
+            {
+                while (true)
+                {
+                    string data = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(data)) break;
+                    collection.Add(data);
+                }
+            });
+
+            write.Wait();
         }
     }
 }
