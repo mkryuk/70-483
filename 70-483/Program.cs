@@ -31,10 +31,11 @@ namespace _70_483
 
             Task.Run(() =>
             {
-                while (true)
+                foreach (var data in collection.GetConsumingEnumerable())
                 {
-                    Console.WriteLine("two: " + collection.Take());
+                    Console.WriteLine("two: " + data);              
                 }
+                      
             });
 
             Task write = Task.Run(() =>
