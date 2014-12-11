@@ -1,15 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace _70_483
 {
@@ -17,38 +8,27 @@ namespace _70_483
     class Program
     {
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            BlockingCollection<string> collection = new BlockingCollection<string>();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = cancellationTokenSource.Token;
 
-            Task.Run(() =>
+            Task t = Task.Run(() =>
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    Console.WriteLine("one: " + collection.Take());
+                    Console.Write("*");
+                    Thread.Sleep(1000);
                 }
-            });
+            }, cancellationToken);
 
-            Task.Run(() =>
-            {
-                foreach (var data in collection.GetConsumingEnumerable())
-                {
-                    Console.WriteLine("two: " + data);              
-                }
-                      
-            });
+            Console.WriteLine("Press enter to stop the task");
+            Console.Read();
+            cancellationTokenSource.Cancel();
 
-            Task write = Task.Run(() =>
-            {
-                while (true)
-                {
-                    string data = Console.ReadLine();
-                    if (string.IsNullOrWhiteSpace(data)) break;
-                    collection.Add(data);
-                }
-            });
+            Console.WriteLine("Press enter to end the application");
+            Console.ReadLine();
 
-            write.Wait();
         }
     }
 }
