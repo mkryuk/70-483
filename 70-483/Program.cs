@@ -20,11 +20,22 @@ namespace _70_483
                     Console.Write("*");
                     Thread.Sleep(1000);
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
             }, cancellationToken);
 
-            Console.WriteLine("Press enter to stop the task");
-            Console.Read();
-            cancellationTokenSource.Cancel();
+            try
+            {
+                Console.WriteLine("Press enter to stop the task");
+                Console.Read();
+                cancellationTokenSource.Cancel();
+                t.Wait();
+            }
+            catch (AggregateException exception)
+            {
+                
+                Console.WriteLine(exception.InnerExceptions[0].Message);
+            }
 
             Console.WriteLine("Press enter to end the application");
             Console.ReadLine();
