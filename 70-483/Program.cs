@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,13 +28,29 @@ namespace _70_483
             }
         }
 
-        public void DoSomeWork( EventHandler _event)
+        public void DoSomeWork()
         {
-            SomeEvent += _event;
+            
             Console.WriteLine("Some work started");
             Thread.Sleep(1000);
             Console.WriteLine("Some work complete");
-            someEvent(this, EventArgs.Empty);
+            var exceptions = new List<Exception>();
+
+            foreach (var handler in someEvent.GetInvocationList())
+            {
+                try
+                {
+                    handler.DynamicInvoke(this, EventArgs.Empty);
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+            }
+            if (exceptions.Any())
+            {
+                throw new AggregateException(exceptions);
+            }
         }
     }
 
@@ -41,9 +59,23 @@ namespace _70_483
         
         private static void Main(string[] args)
         {
-            SomeClass myClass = new SomeClass();
-            myClass.DoSomeWork((caller,eventArgs) 
-                => Console.WriteLine("Called event raise"));
+            var myClass = new SomeClass();
+            //Adding invocation list
+            myClass.SomeEvent += (sender, eventArgs) => Console.WriteLine("First invocation");
+            myClass.SomeEvent += (sender, eventArgs) => { throw new Exception("This is exception"); };
+            myClass.SomeEvent += (sender, eventArgs) => Console.WriteLine("Third invocation");
+
+            try
+            {
+                myClass.DoSomeWork();
+            }
+            catch (AggregateException ex)
+            {
+                foreach (var innerException in ex.InnerExceptions)
+                {
+                    Console.WriteLine(innerException.InnerException.Message);
+                }
+            }
         }
     }
 }
