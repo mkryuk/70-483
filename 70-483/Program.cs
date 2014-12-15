@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,15 +11,20 @@ namespace _70_483
        
         private static void Main(string[] args)
         {
-           string s = Console.ReadLine();
+            ExceptionDispatchInfo possiblException = null;
             try
             {
-                int i = int.Parse(s);
-                if (i == 42) Environment.FailFast("Special number entered");
+                string s = Console.ReadLine();
+                int.Parse(s);
             }
-            finally
+            catch (FormatException ex)
             {
-                Console.WriteLine("Program complete.");
+                possiblException = ExceptionDispatchInfo.Capture(ex);
+            }
+
+            if (possiblException != null)
+            {
+                possiblException.Throw();
             }
         }
     }
