@@ -7,75 +7,52 @@ using System.Threading.Tasks;
 
 namespace _70_483
 {
+    public interface ISomeAnotherInterface
+    {
+        void FromSomeAnotherInterface();
+    }
+
+    public interface ITestInterface:ISomeAnotherInterface
+    {
+        int Data { get; }
+        void ShowSomething();
+        int GetSomething();
+    }
+
+    internal class SomeClass:ITestInterface
+    {
+        //Implementation from derived interface
+        public void FromSomeAnotherInterface()
+        {
+            throw new NotImplementedException();
+        }
+        //Data will be available to set only from class varaible
+        public int Data { get; set; }
+
+        //Explicit implementation
+        void ITestInterface.ShowSomething()
+        {
+            Console.WriteLine(Data);
+        }
+        //Implicit implementation
+        public int GetSomething()
+        {
+            return Data;
+        }
+    }
 
     class Program
     {
-        // The class derived from DynamicObject.
-        public class DynamicDictionary : DynamicObject
-        {
-            // The inner dictionary.
-            Dictionary<string, object> dictionary
-                = new Dictionary<string, object>();
-
-            // This property returns the number of elements
-            // in the inner dictionary.
-            public int Count
-            {
-                get
-                {
-                    return dictionary.Count;
-                }
-            }
-
-            // If you try to get a value of a property 
-            // not defined in the class, this method is called.
-            public override bool TryGetMember(
-                GetMemberBinder binder, out object result)
-            {
-                // Converting the property name to lowercase
-                // so that property names become case-insensitive.
-                string name = binder.Name.ToLower();
-
-                // If the property name is found in a dictionary,
-                // set the result parameter to the property value and return true.
-                // Otherwise, return false.
-                return dictionary.TryGetValue(name, out result);
-            }
-
-            // If you try to set a value of a property that is
-            // not defined in the class, this method is called.
-            public override bool TrySetMember(
-                SetMemberBinder binder, object value)
-            {
-                // Converting the property name to lowercase
-                // so that property names become case-insensitive.
-                dictionary[binder.Name.ToLower()] = value;
-
-                // You can always add a value to a dictionary,
-                // so this method always returns true.
-                return true;
-            }
-        }
-
-        public static dynamic GetSome()
-        {
-            return new
-            {
-                data = 10 as int?,
-                ToString = new Func<string>(()=>"some data here")
-            };
-        }
-
-       
-
         private static void Main(string[] args)
-        {
-            dynamic person = new DynamicDictionary();
-
-            person.FirstName = "Ellen";
-            person.LastName = "Adams";
-
-            Console.WriteLine(person.FirstName + " " + person.LastName);
+        {    
+            //implement as a class instance
+            var someClass = new SomeClass();
+            //implement as interface instance
+            ITestInterface someTestInterface = new SomeClass();
+            //cannot acces method ShowSomething but can access GetSomething
+            someClass.GetSomething();
+            //can access both GetSomething and ShowSomething methods
+            someTestInterface.ShowSomething();
         }
     }
 }
