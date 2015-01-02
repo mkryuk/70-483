@@ -11,53 +11,45 @@ using System.Threading.Tasks;
 
 namespace _70_483
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
-    class MyMegaAttribute : Attribute
+    public class SomeClass
     {
-        public string Data { get; set; }
-        public static int Count { get; set; }
+        private int Id { get; set; }
+        public int Position { get; set; }
+        public string Name { get; set; }
 
-    }
-
-    [MyMega(Data = "Some data")]
-    internal class Person
-    {
-        [MyMega]
-        public void DoSome()
+        public void SomeMethod(string someParam)
         {
-            Console.WriteLine("some thing");
+            Console.WriteLine("Some Method called with param: {0}", someParam);
         }
     }
 
     public class Program
     {
+        //reflect object and find all integer fields
+        public static void DumpObject(object obj)
+        {
+            var fieldInfos = obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+            foreach (var info in fieldInfos
+                .Where(info => info.FieldType == typeof(int)))
+            {
+                Console.WriteLine("{0} {1}",info.Name, info.GetValue(obj));
+            }
+        }
+
         private static void Main(string[] args)
         {
-            var person = new Person();
-            
-            person.DoSome();
-            if (Attribute.IsDefined(typeof(Person), typeof(SerializableAttribute)))
-            {
-                Console.WriteLine("Person has SerializableAttribute");
-            }
 
-            var attribute =
-                (MyMegaAttribute)Attribute.GetCustomAttribute(
-                typeof(Person),
-                typeof(MyMegaAttribute));
-            Console.WriteLine(attribute.Data);
+            var i = 42;
+            //call method via reflection
+            var methodInfo = i.GetType().GetMethod("CompareTo",new[]{typeof(int)});
+            var result = (int) methodInfo.Invoke(i, new object[] {41});
+            Console.WriteLine("the result is {0}",result);
+            //call method via reflection
+            var someClass = new SomeClass() { Position = 10 };
+            var someMethod = someClass.GetType().GetMethod("SomeMethod");
+            someMethod.Invoke(someClass,new object[]{"param"});
 
-            Assembly pluginAssembly = Assembly.Load("Plugins");
-            var plugins = from type in pluginAssembly.GetTypes()
-                where typeof (Plugins.IPlugin).IsAssignableFrom(type) && !type.IsInterface
-                select type;
-
-            foreach (var pluginType in plugins)
-            {
-                var plugin = Activator.CreateInstance(pluginType) as Plugins.IPlugin;
-                Console.WriteLine("Name: {0} Description: {1}",plugin.Name, plugin.Description);
-            }
-
+            DumpObject(someClass);
         }
     }
 }

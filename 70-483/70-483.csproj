@@ -50,12 +50,6 @@
   <ItemGroup>
     <Content Include="data.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Plugins\Plugins.csproj">
-      <Project>{f3bd90d3-ae1e-439d-9f9c-5a7faacb7ed5}</Project>
-      <Name>Plugins</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
