@@ -1,58 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace _70_483
 {
-    public interface ISomeAnotherInterface
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
+    class MyMegaAttribute : Attribute
     {
-        void FromSomeAnotherInterface();
+        public string Data { get; set; }
+        public static int Count { get; set; }
+
     }
 
-    public interface ITestInterface:ISomeAnotherInterface
+    [MyMega(Data = "Some data")]
+    internal class Person
     {
-        int Data { get; }
-        void ShowSomething();
-        int GetSomething();
-    }
-
-    internal class SomeClass:ITestInterface
-    {
-        //Implementation from derived interface
-        public void FromSomeAnotherInterface()
+        [MyMega]
+        public void DoSome()
         {
-            throw new NotImplementedException();
-        }
-        //Data will be available to set only from class varaible
-        public int Data { get; set; }
-
-        //Explicit implementation
-        void ITestInterface.ShowSomething()
-        {
-            Console.WriteLine(Data);
-        }
-        //Implicit implementation
-        public int GetSomething()
-        {
-            return Data;
+            Console.WriteLine("some thing");
         }
     }
 
-    class Program
+    public class Program
     {
         private static void Main(string[] args)
-        {    
-            //implement as a class instance
-            var someClass = new SomeClass();
-            //implement as interface instance
-            ITestInterface someTestInterface = new SomeClass();
-            //cannot acces method ShowSomething but can access GetSomething
-            someClass.GetSomething();
-            //can access both GetSomething and ShowSomething methods
-            someTestInterface.ShowSomething();
+        {
+            var person = new Person();
+            
+            person.DoSome();
+            if (Attribute.IsDefined(typeof(Person), typeof(SerializableAttribute)))
+            {
+                Console.WriteLine("Person has SerializableAttribute");
+            }
+
+            var attribute =
+                (MyMegaAttribute)Attribute.GetCustomAttribute(
+                typeof(Person),
+                typeof(MyMegaAttribute));
+            Console.WriteLine(attribute.Data);
+
+            Assembly pluginAssembly = Assembly.Load("Plugins");
+            var plugins = from type in pluginAssembly.GetTypes()
+                where typeof (Plugins.IPlugin).IsAssignableFrom(type) && !type.IsInterface
+                select type;
+
+            foreach (var pluginType in plugins)
+            {
+                var plugin = Activator.CreateInstance(pluginType) as Plugins.IPlugin;
+                Console.WriteLine("Name: {0} Description: {1}",plugin.Name, plugin.Description);
+            }
+
         }
     }
 }
