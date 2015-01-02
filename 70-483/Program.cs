@@ -1,55 +1,47 @@
 ﻿using System;
+using System.CodeDom;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CSharp;
 
 namespace _70_483
 {
-    public class SomeClass
-    {
-        private int Id { get; set; }
-        public int Position { get; set; }
-        public string Name { get; set; }
-
-        public void SomeMethod(string someParam)
-        {
-            Console.WriteLine("Some Method called with param: {0}", someParam);
-        }
-    }
-
     public class Program
     {
-        //reflect object and find all integer fields
-        public static void DumpObject(object obj)
-        {
-            var fieldInfos = obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
-            foreach (var info in fieldInfos
-                .Where(info => info.FieldType == typeof(int)))
-            {
-                Console.WriteLine("{0} {1}",info.Name, info.GetValue(obj));
-            }
-        }
 
         private static void Main(string[] args)
         {
 
-            var i = 42;
-            //call method via reflection
-            var methodInfo = i.GetType().GetMethod("CompareTo",new[]{typeof(int)});
-            var result = (int) methodInfo.Invoke(i, new object[] {41});
-            Console.WriteLine("the result is {0}",result);
-            //call method via reflection
-            var someClass = new SomeClass() { Position = 10 };
-            var someMethod = someClass.GetType().GetMethod("SomeMethod");
-            someMethod.Invoke(someClass,new object[]{"param"});
+            var compileUnit = new CodeCompileUnit();
+            var myNamespace = new CodeNamespace("MyNamespace");
+            myNamespace.Imports.Add(new CodeNamespaceImport("System"));
+            var myClass = new CodeTypeDeclaration("MyClass");
+            var start = new CodeEntryPointMethod();
+            var cs1 = new CodeMethodInvokeExpression(
+            new CodeTypeReferenceExpression("Console"),
+            "WriteLine", new CodePrimitiveExpression("Hello World!"));
+            compileUnit.Namespaces.Add(myNamespace);
+            myNamespace.Types.Add(myClass);
+            myClass.Members.Add(start);
+            start.Statements.Add(cs1);
 
-            DumpObject(someClass);
+            var provider = new CSharpCodeProvider();
+            using (var sw = new StreamWriter("HelloWorld.cs", false))
+            {
+                var tw = new IndentedTextWriter(sw, " ");
+                provider.GenerateCodeFromCompileUnit(compileUnit, tw,
+                new CodeGeneratorOptions());
+                tw.Close();
+            }
         }
     }
 }
