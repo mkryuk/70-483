@@ -69,7 +69,29 @@ namespace _70_483
 
         private static void Main(string[] args)
         {
-           EncryptSomeText("My secret data");
+            var rsa = new RSACryptoServiceProvider();
+            var publicKeyXml = rsa.ToXmlString(false);
+            var privateKeyXml = rsa.ToXmlString(true);
+            var ByteConverter = new UnicodeEncoding();
+            var dataToEncrypt = ByteConverter.GetBytes("My secret data");
+            byte[] encryptedData;
+            using (var RSA = new RSACryptoServiceProvider())
+            {
+                RSA.FromXmlString(publicKeyXml);
+                encryptedData = RSA.Encrypt(dataToEncrypt,false);
+            }
+
+            byte[] decryptedData;
+            using (var RSA = new RSACryptoServiceProvider())
+            {
+                RSA.FromXmlString(privateKeyXml);
+                decryptedData = RSA.Decrypt(encryptedData, false);
+            }
+
+            var decryptedString = ByteConverter.GetString(decryptedData);
+            Console.WriteLine(decryptedString);
+
+            //EncryptSomeText("My secret data");
         }
 
     }
