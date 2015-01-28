@@ -69,22 +69,24 @@ namespace _70_483
 
         private static void Main(string[] args)
         {
-            var rsa = new RSACryptoServiceProvider();
-            var publicKeyXml = rsa.ToXmlString(false);
-            var privateKeyXml = rsa.ToXmlString(true);
+            //var rsa = new RSACryptoServiceProvider();
+            //var publicKeyXml = rsa.ToXmlString(false);
+            //var privateKeyXml = rsa.ToXmlString(true);
             var ByteConverter = new UnicodeEncoding();
             var dataToEncrypt = ByteConverter.GetBytes("My secret data");
             byte[] encryptedData;
-            using (var RSA = new RSACryptoServiceProvider())
+            var containerName = "SecretContainer";
+            var csp = new CspParameters() {KeyContainerName = containerName};
+            using (var RSA = new RSACryptoServiceProvider(csp))
             {
-                RSA.FromXmlString(publicKeyXml);
+                //RSA.FromXmlString(publicKeyXml);
                 encryptedData = RSA.Encrypt(dataToEncrypt,false);
             }
 
             byte[] decryptedData;
-            using (var RSA = new RSACryptoServiceProvider())
+            using (var RSA = new RSACryptoServiceProvider(csp))
             {
-                RSA.FromXmlString(privateKeyXml);
+                //RSA.FromXmlString(privateKeyXml);
                 decryptedData = RSA.Decrypt(encryptedData, false);
             }
 
