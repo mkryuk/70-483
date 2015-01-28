@@ -19,81 +19,85 @@ using System.Web.Script.Serialization;
 
 namespace _70_483
 {
-  
+    class Person : IComparable
+    {
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public string SecondName { get; set; }        
+
+        public Person(string name, string surname, string secondName)
+        {
+            Name = name;
+            Surname = surname;
+            SecondName = secondName;            
+        }
+
+        public int CompareTo(object obj)
+        {
+            var temp = (Person)obj;
+            return Name.CompareTo(temp.Name) == 0 && Surname.CompareTo(temp.Surname) == 0 &&
+                   SecondName.CompareTo(temp.SecondName) == 0
+                ? 0
+                : 1;
+        }       
+    }
+    public class Set<T> where T : IComparable
+    {
+        //Create buckets for data
+        public List<T>[] buckets = new List<T>[100];
+
+        public void Insert(T item)
+        {
+            int bucket = GetBucket(item.GetHashCode());
+            if (Contains(item, bucket))
+                return;
+            if (buckets[bucket] == null)
+                buckets[bucket] = new List<T>();
+            buckets[bucket].Add(item);
+        }
+        
+
+        private bool Contains(T item, int bucket)
+        {
+            //If there is no bucket
+            if (buckets[bucket] == null) return false;
+            //otherwise looking for a data in current bucket
+            foreach (T member in buckets[bucket])
+            {
+                if (member.CompareTo(item) == 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private int GetBucket(int hashCode)
+        {
+            unchecked
+            {
+                //calculate bucket for the data
+                return (int)((uint)hashCode % (uint)buckets.Length);
+            }
+        }
+    }
+
     public class Program
     {
-        public static void EncryptSomeText(string data)
-        {
-            var original = data;
-            using (SymmetricAlgorithm symmetricAlgorithm = new AesManaged())
-            {
-                var encrypted = Encrypt(symmetricAlgorithm, original);
-                var decrypted = Decrypt(symmetricAlgorithm, encrypted);
 
-                Console.WriteLine("Original: {0}",original);
-                Console.WriteLine("Encrypted: {0}",Encoding.UTF8.GetString(encrypted));
-                Console.WriteLine("Decrypted: {0}", decrypted);
-            }
-        }
-
-        private static string Decrypt(SymmetricAlgorithm aesAlg, byte[] cipherText)
-        {
-            var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-            using (var msDecryption = new MemoryStream(cipherText))
-            {
-                using (var csDecrypt = new CryptoStream(msDecryption,decryptor,CryptoStreamMode.Read))
-                {
-                    using (var srDecrypt = new StreamReader(csDecrypt))
-                    {
-                        return srDecrypt.ReadToEnd();
-                    }
-                }
-            }
-        }
-
-        public static byte[] Encrypt(SymmetricAlgorithm aesAlg, string plainText)
-        {
-            var encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-            using (var msEncryption = new MemoryStream())
-            {
-                using (var csEncrypt = new CryptoStream(msEncryption,encryptor,CryptoStreamMode.Write))
-                {
-                    using (var swEncrypt = new StreamWriter(csEncrypt))
-                    {
-                        swEncrypt.Write(plainText);
-                    }
-                    return msEncryption.ToArray();
-                }
-            }
-        }
 
         private static void Main(string[] args)
         {
-            //var rsa = new RSACryptoServiceProvider();
-            //var publicKeyXml = rsa.ToXmlString(false);
-            //var privateKeyXml = rsa.ToXmlString(true);
-            var ByteConverter = new UnicodeEncoding();
-            var dataToEncrypt = ByteConverter.GetBytes("My secret data");
-            byte[] encryptedData;
-            var containerName = "SecretContainer";
-            var csp = new CspParameters() {KeyContainerName = containerName};
-            using (var RSA = new RSACryptoServiceProvider(csp))
+            var set = new Set<Person>();
+            var sw = new Stopwatch();
+            sw.Start();
+            for (int i = 0; i < 10000; i++)
             {
-                //RSA.FromXmlString(publicKeyXml);
-                encryptedData = RSA.Encrypt(dataToEncrypt,false);
+                set.Insert(new Person(i.ToString(), "Petrovich", "Pupkin"));
             }
+            sw.Stop();
+            Console.WriteLine("Elapsed {0}", sw.Elapsed);
 
-            byte[] decryptedData;
-            using (var RSA = new RSACryptoServiceProvider(csp))
-            {
-                //RSA.FromXmlString(privateKeyXml);
-                decryptedData = RSA.Decrypt(encryptedData, false);
-            }
-
-            var decryptedString = ByteConverter.GetString(decryptedData);
-            Console.WriteLine(decryptedString);
-
-            //EncryptSomeText("My secret data");
         }
 
     }
