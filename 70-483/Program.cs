@@ -39,7 +39,12 @@ namespace _70_483
                    SecondName.CompareTo(temp.SecondName) == 0
                 ? 0
                 : 1;
-        }       
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode() + Surname.GetHashCode() + SecondName.GetHashCode();
+        }
     }
     public class Set<T> where T : IComparable
     {
@@ -48,7 +53,7 @@ namespace _70_483
 
         public void Insert(T item)
         {
-            int bucket = GetBucket(item.GetHashCode());
+            var bucket = GetBucket(item.GetHashCode());
             if (Contains(item, bucket))
                 return;
             if (buckets[bucket] == null)
@@ -59,17 +64,9 @@ namespace _70_483
 
         private bool Contains(T item, int bucket)
         {
-            //If there is no bucket
-            if (buckets[bucket] == null) return false;
+            //If there is no bucket return false
             //otherwise looking for a data in current bucket
-            foreach (T member in buckets[bucket])
-            {
-                if (member.CompareTo(item) == 0)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return buckets[bucket] != null && buckets[bucket].Any(member => member.CompareTo(item) == 0);
         }
 
         private int GetBucket(int hashCode)
@@ -84,20 +81,18 @@ namespace _70_483
 
     public class Program
     {
-
-
         private static void Main(string[] args)
         {
             var set = new Set<Person>();
             var sw = new Stopwatch();
             sw.Start();
-            for (int i = 0; i < 10000; i++)
+            for (var i = 0; i < 10000; i++)
             {
-                set.Insert(new Person(i.ToString(), "Petrovich", "Pupkin"));
+                var person = new Person(i.ToString(), "Petrovich", "Pupkin");
+                set.Insert(person);
             }
             sw.Stop();
             Console.WriteLine("Elapsed {0}", sw.Elapsed);
-
         }
 
     }
