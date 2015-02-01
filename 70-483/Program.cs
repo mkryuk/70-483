@@ -21,20 +21,52 @@ namespace _70_483
 {
     public class Program
     {
+        public static void SignAndVerify()
+        {
+            string textToSign = "Test paragraph";
+            byte[] signature = Sign(textToSign, "cn=WouterDeKort");
+            // Uncomment this line to make the verification step fail
+             signature[0] = 0;
+            Console.WriteLine(Verify(textToSign, signature));
+        }
+        static byte[] Sign(string text, string certSubject)
+        {
+            X509Certificate2 cert = GetCertificate();
+            var csp = (RSACryptoServiceProvider)cert.PrivateKey;
+            byte[] hash = HashData(text);
+            return csp.SignHash(hash, CryptoConfig.MapNameToOID("SHA1"));
+        }
+        static bool Verify(string text, byte[] signature)
+        {
+            X509Certificate2 cert = GetCertificate();
+            var csp = (RSACryptoServiceProvider)cert.PublicKey.Key;
+            byte[] hash = HashData(text);
+            return csp.VerifyHash(hash,
+                CryptoConfig.MapNameToOID("SHA1"),
+                signature);
+        }
+        private static byte[] HashData(string text)
+        {
+            HashAlgorithm hashAlgorithm = new SHA1Managed();
+            UnicodeEncoding encoding = new UnicodeEncoding();
+            byte[] data = encoding.GetBytes(text);
+            byte[] hash = hashAlgorithm.ComputeHash(data);
+            return hash;
+        }
+        private static X509Certificate2 GetCertificate()
+        {
+            X509Store my = new X509Store("testCertStore",
+                StoreLocation.CurrentUser);
+            my.Open(OpenFlags.ReadOnly);
+            //The following line creates a certificate and installs it in a custom 
+            //certificate store named testCertStore:
+            //makecert -n “CN=WouterDeKort” -sr currentuser -ss testCertStore
+            var certificate = my.Certificates[0];
+            return certificate;
+        }
         private static void Main(string[] args)
         {
-            var byteConverter = new UnicodeEncoding();
-            var sha256 = SHA256.Create();
-            
-            var data = "A paragraph of text";
-            var hashA = sha256.ComputeHash(byteConverter.GetBytes(data));
-            data = "A paragraph of changed text";
-            var hashB = sha256.ComputeHash(byteConverter.GetBytes(data));
-            data = "A paragraph of text";
-            var hashC = sha256.ComputeHash(byteConverter.GetBytes(data));
-
-            Console.WriteLine("Is hashA and hashB are equal: {0}",hashA.SequenceEqual(hashB));
-            Console.WriteLine("Is hashA and hashC are equal: {0}",hashA.SequenceEqual(hashC));
+            SignAndVerify();
         }
 
     }
