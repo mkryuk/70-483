@@ -35,8 +35,7 @@ namespace _70_483
         public int CompareTo(object obj)
         {
             var temp = (Person)obj;
-            return Name.CompareTo(temp.Name) == 0 && Surname.CompareTo(temp.Surname) == 0 &&
-                   SecondName.CompareTo(temp.SecondName) == 0
+            return this.GetHashCode() == temp.GetHashCode()
                 ? 0
                 : 1;
         }
@@ -50,6 +49,9 @@ namespace _70_483
     {
         //Create buckets for data
         public List<T>[] buckets = new List<T>[100];
+        public object Length {
+            get { return buckets != null ? buckets.Sum(bucket => bucket != null ? bucket.Count : 0) : 0; }
+        }
 
         public void Insert(T item)
         {
@@ -86,13 +88,13 @@ namespace _70_483
             var set = new Set<Person>();
             var sw = new Stopwatch();
             sw.Start();
-            for (var i = 0; i < 10000; i++)
+            for (var i = 0; i < 1000; i++)
             {
                 var person = new Person(i.ToString(), "Petrovich", "Pupkin");
                 set.Insert(person);
             }
             sw.Stop();
-            Console.WriteLine("Elapsed {0}", sw.Elapsed);
+            Console.WriteLine("Elapsed {0} items in set = {1}", sw.Elapsed, set.Length);
         }
 
     }
