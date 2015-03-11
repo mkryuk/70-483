@@ -23,36 +23,49 @@ namespace _70_483
 {
     public class Program
     {
-        private static void Main(string[] args)
+        public static void TestMethod()
         {
-            using (SecureString ss = new SecureString())
-            {
-                Console.Write("Please enter password: ");
-                while (true)
-                {
-                    ConsoleKeyInfo cki = Console.ReadKey(true);
-                    if (cki.Key == ConsoleKey.Enter) break;
-                    ss.AppendChar(cki.KeyChar);
-                    Console.Write("*");
-                }
-                ss.MakeReadOnly();
-                ConvertToUnsecureString(ss);
-            }
+            var traceSource = new TraceSource("myTraceSource");
+            traceSource.TraceEvent(TraceEventType.Warning, 1, "This is a warning from TestMethod");
         }
 
-        public static void ConvertToUnsecureString(SecureString securePassword)
+        private static void Main(string[] args)
         {
-            IntPtr unmanagedString = IntPtr.Zero;
-            try
+            // global listeners defined in App.config
+            //local textWriter listener
+            var textWriter = new TextWriterTraceListener(new StreamWriter("trace.txt"));
+            //local XmlWriterListener
+            var xmlWriter = new XmlWriterTraceListener(new StreamWriter("trace.xml"));
+            var traceSource = new TraceSource("myTraceSource");
+            
+            //if we want to clear all listeners
+            //traceSource.Listeners.Clear();
+
+            //add listeners only for Main method
+            traceSource.Listeners.Add(textWriter);
+            traceSource.Listeners.Add(xmlWriter);
+
+            //call other method to test global listeners
+            TestMethod();
+            traceSource.TraceInformation("Start trace");
+            var thread = new Thread(() =>
             {
-                unmanagedString = Marshal.SecureStringToGlobalAllocUnicode(securePassword);
-                Console.WriteLine(Marshal.PtrToStringUni(unmanagedString));
-            }
-            finally
-            {
-                Marshal.ZeroFreeGlobalAllocUnicode(unmanagedString);
-            }
-        }
+                while (true)
+                {
+                    //writes data to trace.txt trace.xml 
+                    traceSource.TraceInformation("Current datetime:{0}", DateTime.Now.ToLongTimeString());
+                    //writes data to output.txt because of filter configured in App.config
+                    traceSource.TraceEvent(TraceEventType.Warning, 0, "This is a warning");
+                }
+            });
+            thread.Start();
+            //wait for 10 milliseconds
+            Thread.Sleep(10);
+            thread.Abort();
+            //writes down all the data
+            traceSource.Flush();
+            traceSource.Close();
+        } 
 
     }
 }
